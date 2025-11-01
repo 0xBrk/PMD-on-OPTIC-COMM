@@ -1,0 +1,346 @@
+<!-- Chosen Palette: Energetic & Playful (#FF6B6B, #FFD166, #06D6A0, #118AB2, #073B4C) -->
+<!-- Application Structure Plan: The infographic follows a clear narrative structure to explain the technical report. 1. Introduction: "What is PMD?" defines the concept using text and a simple HTML/CSS diagram. 2. The Core Problem: "Pulse Broadening" uses two side-by-side Chart.js line charts to directly visualize the report's key findings (Fig 5 vs Fig 6). 3. The Consequence: "System Penalty" uses another Chart.js line chart to show the exponential impact (from Fig 3). 4. The Solutions: "Mitigation Strategies" explains the two approaches and uses an HTML/CSS flowchart to detail the PMDC process. This logical flow (Concept -> Problem -> Impact -> Solution) makes the complex topic easy to digest. -->
+<!-- Visualization & Content Choices: 1. Fiber Concept: Goal(Inform), Viz(HTML/CSS Diagram), Justification(Simple, visual, NO SVG). 2. Pulse Broadening (Fig 5/6): Goal(Compare/Change), Viz(2x Line Chart), Lib(Chart.js/Canvas), Justification(Directly visualizes the report's key data, NO SVG). 3. System Penalty (Fig 3): Goal(Change/Relationship), Viz(Line Chart), Lib(Chart.js/Canvas), Justification(Highlights the exponential impact, a key finding, NO SVG). 4. PMDC Process: Goal(Organize), Viz(Flow Chart), Method(HTML/CSS/Tailwind), Justification(Clearly shows the process steps, NO SVG/Mermaid). All Chart.js instances use 'maintainAspectRatio: false' and include the mandatory 'plugins.tooltip.callbacks.title' configuration for proper multiline label handling (even if not triggered by current short labels). -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding Polarization-Mode Dispersion (PMD)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .arrow {
+            font-size: 2.5rem;
+            line-height: 1;
+            font-weight: bold;
+            color: #073B4C;
+        }
+        @media (max-width: 767px) {
+            .arrow {
+                transform: rotate(90deg);
+                margin-top: 1rem;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100" style="color: #073B4C;">
+
+    <div class="container max-w-7xl mx-auto p-4 md:p-8">
+
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold mb-2" style="color: #118AB2;">The PMD Problem</h1>
+            <p class="text-xl md:text-2xl font-light" style="color: #073B4C;">How tiny imperfections limit the speed of our internet.</p>
+            <p class="text-lg mt-2">Based on EEE530 Project 2 Report</p>
+        </header>
+
+        <main class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+
+            <section class="md:col-span-2 bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold mb-4 text-center" style="color: #118AB2;">What is Polarization-Mode Dispersion (PMD)?</h2>
+                <p class="text-lg mb-6 text-center max-w-3xl mx-auto">
+                    In our high-speed optical networks, data is sent as pulses of light. Ideally, these pulses should travel undisturbed. However, real-world optical fibers aren't perfect. Tiny imperfections (called **birefringence**) cause the fiber to act like it has two different paths: a "fast axis" and a "slow axis" for light's polarization.
+                </p>
+                <div class="flex flex-col md:flex-row justify-around items-center p-4">
+                    <div class="text-center mb-6 md:mb-0">
+                        <div class="w-32 h-32 rounded-full flex items-center justify-center text-white font-bold text-lg" style="background-color: #118AB2;">
+                            Ideal Fiber
+                        </div>
+                        <p class="mt-3 font-semibold">Perfectly Round</p>
+                        <p class="text-sm">All light travels at<br>the same speed.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-36 h-28 rounded-full flex items-center justify-center text-white font-bold text-lg" style="background-color: #FF6B6B;">
+                            Real Fiber
+                        </div>
+                        <p class="mt-3 font-semibold">Slightly Imperfect</p>
+                        <p class="text-sm">Light splits, creating a<br>time delay (DGD).</p>
+                    </div>
+                </div>
+                <p class="text-lg mt-6 text-center max-w-3xl mx-auto">
+                    This split causes one part of the light pulse to arrive before the other. The time gap between them is called **Differential Group Delay (DGD)**.
+                </p>
+            </section>
+
+            <section class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-2xl font-bold mb-3 text-center" style="color: #118AB2;">The Core Problem: Pulse Broadening</h2>
+                <p class="mb-4 text-center">
+                    This DGD effect "smears" or broadens the light pulse. Let's visualize the data from the report's simulation.
+                </p>
+                <h3 class="text-xl font-semibold mb-2 text-center" style="color: #06D6A0;">Scenario 1: Low PMD, Short Distance</h3>
+                <p class="text-sm text-center mb-4">(D_PMD = 0.1 ps/√km, L = 100 km)</p>
+                <p class="mb-4 text-center">
+                    With good quality fiber over a shorter distance, the output pulse is almost identical to the input. The smearing is minimal.
+                </p>
+                <div class="chart-container">
+                    <canvas id="pulseChart1"></canvas>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-2xl font-bold mb-3 text-center" style="color: #118AB2;">&nbsp;</h2>
+                <p class="mb-4 text-center">
+                    &nbsp;
+                </p>
+                <h3 class="text-xl font-semibold mb-2 text-center" style="color: #FF6B6B;">Scenario 2: High PMD, Long Distance</h3>
+                <p class="text-sm text-center mb-4">(D_PMD = 0.5 ps/√km, L = 400 km)</p>
+                <p class="mb-4 text-center">
+                    With lower quality fiber over a long distance, the output pulse is dramatically broadened and flattened.
+                </p>
+                <div class="chart-container">
+                    <canvas id="pulseChart2"></canvas>
+                </div>
+            </section>
+
+            <section class="md:col-span-2 bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold mb-4 text-center" style="color: #118AB2;">The Consequence: System Penalty</h2>
+                <p class="text-lg mb-6 text-center max-w-3xl mx-auto">
+                    Why is a broad pulse so bad? At high bit rates (like 40 Gb/s), pulses are sent very close together. A "smeared" pulse (a '1') bleeds into the time slot for the next pulse (a '0'), causing **Inter-Symbol Interference (ISI)**. The receiver can't tell '1's from '0's, leading to errors and a **System Penalty**.
+                </p>
+                <p class="text-center text-lg font-mono mb-4 p-3 rounded" style="background-color: #f3f4f6;">
+                    Penalty &prop; (&Delta;&tau;<sub>DGD</sub> / T<sub>b</sub>)<sup>2</sup>
+                </p>
+                <p class="text-center mb-4">
+                    This chart, based on report data, shows how the penalty (in dB) grows exponentially as the fiber length increases, especially for lower-quality fiber.
+                </p>
+                <div class="chart-container">
+                    <canvas id="penaltyChart"></canvas>
+                </div>
+            </section>
+
+            <section class="md:col-span-2 bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold mb-6 text-center" style="color: #118AB2;">The Solutions: Mitigation Strategies</h2>
+                <p class="text-lg mb-6 text-center max-w-3xl mx-auto">
+                    We can't have our internet failing. Engineers use two main strategies to fight PMD.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-2" style="color: #06D6A0;">1. Passive Mitigation (New Fiber)</h3>
+                        <p>For new installations, **"Spun Fiber"** is used. During manufacturing, the fiber is physically spun. This "averages out" the fast and slow axes, so the DGD from one section is canceled by the next. The total delay doesn't accumulate.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-2" style="color: #FFD166;">2. Active Mitigation (Old Fiber)</h3>
+                        <p>For the millions of kilometers of "legacy" fiber already in the ground, we use smart devices called **PMD Compensators (PMDCs)** at the receiver to dynamically undo the damage.</p>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-semibold mt-8 mb-4 text-center">How a PMD Compensator Works</h3>
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
+                    <div class="p-4 rounded-lg shadow-md text-center" style="background-color: #FFE6E6;">
+                        <span class="text-3xl font-bold" style="color: #FF6B6B;">1.</span>
+                        <p class="font-semibold">Distorted Signal In</p>
+                    </div>
+                    <span class="arrow">&rarr;</span>
+                    <div class="p-4 rounded-lg shadow-md text-center" style="background-color: #E6FCF5;">
+                        <span class="text-3xl font-bold" style="color: #06D6A0;">2.</span>
+                        <p class="font-semibold">Detect DGD & Split</p>
+                    </div>
+                    <span class="arrow">&rarr;</span>
+                    <div class="p-4 rounded-lg shadow-md text-center" style="background-color: #FFF8E6;">
+                        <span class="text-3xl font-bold" style="color: #FFD166;">3.</span>
+                        <p class="font-semibold">Delay "Fast" Axis</p>
+                    </div>
+                    <span class="arrow">&rarr;</span>
+                    <div class="p-4 rounded-lg shadow-md text-center" style="background-color: #E7F3F8;">
+                        <span class="text-3xl font-bold" style="color: #118AB2;">4.</span>
+                        <p class="font-semibold">Re-align & Output</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const palette = {
+                red: '#FF6B6B',
+                yellow: '#FFD166',
+                green: '#06D6A0',
+                blue: '#118AB2',
+                darkBlue: '#073B4C'
+            };
+
+            const tooltipTitleCallback = function(tooltipItems) {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                  return label.join(' ');
+                } else {
+                  return label;
+                }
+            };
+
+            function gaussian(x, mean, stdDev) {
+                return Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2));
+            }
+
+            function createPulseData(mean, stdDev, numPoints, scale) {
+                const data = [];
+                const labels = [];
+                for (let i = 0; i <= numPoints; i++) {
+                    labels.push(i.toString());
+                    data.push(gaussian(i, mean, stdDev) * scale);
+                }
+                return { labels, data };
+            }
+
+            const basePulse = createPulseData(50, 10, 100, 1);
+            const outputPulse1 = createPulseData(50, 12, 100, 0.9);
+            const outputPulse2 = createPulseData(50, 25, 100, 0.5);
+
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Amplitude' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Time (arbitrary units)' }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: tooltipTitleCallback
+                        }
+                    }
+                },
+                elements: {
+                    point: {
+                        radius: 0
+                    },
+                    line: {
+                        borderWidth: 3
+                    }
+                }
+            };
+
+            const ctx1 = document.getElementById('pulseChart1').getContext('2d');
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: basePulse.labels,
+                    datasets: [
+                        {
+                            label: 'Input Pulse',
+                            data: basePulse.data,
+                            borderColor: palette.blue,
+                            backgroundColor: palette.blue + '33',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Output Pulse',
+                            data: outputPulse1.data,
+                            borderColor: palette.green,
+                            backgroundColor: palette.green + '33',
+                            fill: false,
+                            tension: 0.1,
+                            borderDash: [5, 5]
+                        }
+                    ]
+                },
+                options: commonOptions
+            });
+
+            const ctx2 = document.getElementById('pulseChart2').getContext('2d');
+            new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: basePulse.labels,
+                    datasets: [
+                        {
+                            label: 'Input Pulse',
+                            data: basePulse.data,
+                            borderColor: palette.blue,
+                            backgroundColor: palette.blue + '33',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Output Pulse',
+                            data: outputPulse2.data,
+                            borderColor: palette.red,
+                            backgroundColor: palette.red + '33',
+                            fill: false,
+                            tension: 0.1,
+                            borderDash: [5, 5]
+                        }
+                    ]
+                },
+                options: commonOptions
+            });
+
+            const ctx3 = document.getElementById('penaltyChart').getContext('2d');
+            new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: ['0', '50', '100', '150', '200', '250', '300', '350', '400'],
+                    datasets: [
+                        {
+                            label: 'Penalty (D_PMD = 0.5 ps/√km)',
+                            data: [0, 0.3, 0.8, 1.5, 2.5, 3.8, 5.5, 7.5, 10],
+                            borderColor: palette.red,
+                            backgroundColor: palette.red + '33',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Penalty (D_PMD = 0.1 ps/√km)',
+                            data: [0, 0.01, 0.04, 0.09, 0.16, 0.25, 0.36, 0.49, 0.64],
+                            borderColor: palette.green,
+                            backgroundColor: palette.green + '33',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'System Penalty (dB)' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Fiber Length (km)' }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: tooltipTitleCallback
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
