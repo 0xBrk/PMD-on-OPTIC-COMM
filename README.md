@@ -1,5 +1,4 @@
-# PMD-on-OPTIC-COMM
- # Impact of Polarization-Mode Dispersion (PMD) on optical pulse  propagation. 
+# Impact of Polarization-Mode Dispersion (PMD) on Optical Pulse  Propagation. 
 
  One of the most significant factors limiting performance in high-speed fibre optic communication systems is Polarisation Mode Dispersion (PMD). PMD arises due to random birefringence along the fibre and causes two orthogonal polarisation modes to propagate at different speeds. This leads to optical pulse broadening and degradation in system performance.
 
