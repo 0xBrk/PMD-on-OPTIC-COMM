@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project 2: Polarization-Mode Dispersion (PMD) & System Penalty</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f8ff;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+
+        .small-chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 40vh;
+        }
+
+        h1, h2, h3 {
+            color: #0A2E36;
+        }
+        p, li {
+            color: #005E7C;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease-in-out;
+        }
+        .card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: translateY(-2px);
+        }
+        .stat-card {
+            background-color: #0097B2;
+            color: white;
+        }
+        .flow-step {
+            background-color: #8ECAE6;
+            color: #0A2E36;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+            flex: 1;
+            min-width: 150px;
+        }
+        .flow-arrow {
+            font-size: 2.5rem;
+            color: #005E7C;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 0.5rem;
+        }
+        @media (max-width: 768px) {
+            .flow-arrow {
+                transform: rotate(90deg);
+                margin: 0.5rem 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+
+    <header class="bg-gradient-to-r from-[#0A2E36] to-[#005E7C] text-white p-12 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 text-white">The Invisible Bottleneck:</h1>
+        <h2 class="text-2xl md:text-3xl font-light text-[#8ECAE6]">Understanding Polarization-Mode Dispersion (PMD) & System Penalty</h2>
+    </header>
+
+
+    <main class="container mx-auto max-w-7xl p-4 md:p-8">
+
+
+        <section id="intro" class="card p-6 md:p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-4">What is Polarization-Mode Dispersion (PMD)?</h2>
+            <p class="text-lg mb-4">
+                In a perfect optical fiber, a pulse of light travels as a single unit. However, real-world fibers have tiny, random imperfections. These imperfections cause the fiber to have different refractive indices for different polarizations of light, a property called <strong class="text-[#005E7C]">birefringence</strong>.
+            </p>
+            <p class="text-lg">
+                This splits the light pulse into two separate "orthogonal polarization modes" which then travel at <strong class="text-[#005E7C]">different speeds</strong>. One mode arrives slightly later than the other. This time difference is the <strong class="text-xl font-semibold text-[#0097B2]">Differential Group Delay (DGD)</strong>.
+            </p>
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div>
+                    <h3 class="text-2xl font-semibold mb-3">The Consequence: Pulse Broadening</h3>
+                    <p class="text-lg mb-4">
+                        When the two delayed pulses recombine at the receiver, the original sharp pulse is "smeared" or broadened.
+                    </p>
+                    <ul class="list-disc list-inside space-y-2 text-lg">
+                        <li>This "smearing" can cause the pulse to overlap with its neighbors, creating <strong class="text-[#005E7C]">Inter-Symbol Interference (ISI)</strong>.</li>
+                        <li>The receiver can no longer distinguish a '1' from a '0'.</li>
+                        <li>This is a primary factor limiting data rates to 10 Gb/s and beyond.</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-xl font-semibold text-center mb-2">Conceptual Visualization</h3>
+                    <div class="flex flex-col items-center">
+                        <div class="text-center p-2">
+                            <div class="font-bold text-lg text-[#0A2E36]">Input Pulse</div>
+                            <div class="w-24 h-24 bg-[#0097B2] rounded-full flex items-center justify-center text-white font-bold text-3xl shadow-lg">1</div>
+                        </div>
+                        <div class="text-4xl text-[#0A2E36] my-2">↓</div>
+                        <div class="text-center p-2 text-sm text-[#005E7C]">Fiber with PMD</div>
+                        <div class="text-4xl text-[#0A2E36] my-2">↓</div>
+                        <div class="text-center p-2">
+                            <div class="font-bold text-lg text-[#0A2E36]">Output Pulse</div>
+                            <div class="w-48 h-16 bg-[#8ECAE6] opacity-75 rounded-full flex items-center justify-center text-white font-bold text-3xl shadow-lg blur-sm">1</div>
+                            <p class="text-sm text-red-600 font-semibold mt-2">Broadened Pulse (ISI)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="dgd" class="card p-6 md:p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-4">Quantifying the Delay: Differential Group Delay (DGD)</h2>
+            <p class="text-lg mb-4">
+                The DGD ($\Delta\tau_{DGD}$) is the fundamental metric for PMD. It's not fixed; it grows with the square root of the fiber length (L) and is defined by the fiber's quality, the PMD Coefficient ($D_{PMD}$).
+            </p>
+            <div class="text-center bg-gray-100 p-4 rounded-lg mb-6">
+                <code class="text-2xl font-semibold text-[#005E7C] tracking-wide">Δτ_DGD = D_PMD * √L</code>
+            </div>
+            <p class="text-lg mb-4">
+                We calculated the DGD for various fiber lengths and coefficients (from Report Table 1). The chart below shows this relationship clearly. Notice how the delay grows much faster for higher $D_{PMD}$ values.
+            </p>
+            <div class="chart-container">
+                <canvas id="dgdChart"></canvas>
+            </div>
+        </section>
+
+
+        <section id="broadening" class="card p-6 md:p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-4">Visualizing the Impact: Pulse Broadening Simulation</h2>
+            <p class="text-lg mb-6">
+                Based on the project report (Figures 1-3), we simulated how a 20ps input pulse degrades. We plot the original pulse against the broadened output pulses at different fiber lengths (100km to 1000km) for each $D_{PMD}$ coefficient.
+            </p>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                <div class="col-span-1">
+                    <h3 class="text-2xl font-semibold text-center mb-3">Low PMD ($D_{PMD} = 0.1$ ps/√km)</h3>
+                    <p class="text-center mb-4">Even at 1000km, the pulse is broadened but still distinct.</p>
+                    <div class="small-chart-container">
+                        <canvas id="pulseChart1"></canvas>
+                    </div>
+                </div>
+
+                <div class="col-span-1">
+                    <h3 class="text-2xl font-semibold text-center mb-3">Medium PMD ($D_{PMD} = 0.2$ ps/√km)</h3>
+                    <p class="text-center mb-4">At 500km and beyond, the pulse peak drops significantly and spreads.</p>
+                    <div class="small-chart-container">
+                        <canvas id="pulseChart2"></canvas>
+                    </div>
+                </div>
+
+                <div class="col-span-1">
+                    <h3 class="text-2xl font-semibold text-center mb-3">High PMD ($D_{PMD} = 0.5$ ps/√km)</h3>
+                    <p class="text-center mb-4">The pulse is catastrophically flattened, becoming unrecognizable even at 200km.</p>
+                    <div class="small-chart-container">
+                        <canvas id="pulseChart3"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="penalty" class="card p-6 md:p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-4">The Price of Delay: System Penalty</h2>
+            <p class="text-lg mb-4">
+                "Penalty" is a measure of how much extra power the system needs to maintain the same performance (Bit Error Rate). It's directly related to how much the DGD "closes" the bit period ($T_b$). For our 10 Gb/s system, $T_b = 100 ps$.
+            </p>
+            <div class="text-center bg-gray-100 p-4 rounded-lg mb-6">
+                <code class="text-2xl font-semibold text-[#005E7C] tracking-wide">Penalty ∝ (Δτ_DGD / T_b)²</code>
+            </div>
+            <p class="text-lg mb-4">
+                This chart (from Report Figure 4) plots the calculated penalty against DGD. The <strong class="text-[#005E7C]">quadratic relationship</strong> is critical: a small increase in DGD results in a much larger penalty. A 1dB penalty (approx 0.1 on this chart) is often the maximum tolerable limit.
+            </p>
+            <div class="chart-container">
+                <canvas id="penaltyChart"></canvas>
+            </div>
+        </section>
+
+
+        <section id="eye" class="card p-6 md:p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-4">Closing the 'Eye': Performance Visualization</h2>
+            <p class="text-lg mb-6">
+                An "Eye Diagram" is the best way to see the combined effects of noise and ISI. It's created by overlaying all the '1' and '0' bits from the signal. The open central area, or "eye," is the region where the receiver can safely sample the bit.
+            </p>
+            <p class="text-lg mb-6">
+                As PMD increases, DGD and pulse broadening cause the eye to close, making it impossible to sample the data without errors. Below is a simulation based on Figures 5 & 6 from the report.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <div class="text-center">
+                    <h3 class="text-2xl font-semibold mb-3">Low DGD (10 ps)</h3>
+                    <p class="mb-4">The eye is wide open. The receiver has a large margin for error. Performance is high.</p>
+                    <div class="small-chart-container bg-black rounded-lg p-2">
+                        <canvas id="eyeOpenChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <h3 class="text-2xl font-semibold mb-3">High DGD (30 ps)</h3>
+                    <p class="mb-4">The eye is almost completely closed. It's impossible to find a safe sampling point. BER is catastrophic.</p>
+                    <div class="small-chart-container bg-black rounded-lg p-2">
+                        <canvas id="eyeClosedChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="ber" class="card p-6 md:p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-4">The Bottom Line: Bit Error Rate (BER)</h2>
+            <p class="text-lg mb-4">
+                This chart (from Report Figure 7 / your screenshot) connects everything. It directly plots the Bit Error Rate (BER) against the Eye Opening.
+            </p>
+            <p class="text-lg mb-4">
+                As the eye closes (moving left on the X-axis), the BER (Y-axis) <strong class="text-red-600">skyrockets exponentially</strong>. A tiny 2-3 dB reduction in eye opening can increase the error rate by a factor of 10,000 or more, rendering the communication link useless.
+            </p>
+            <div class="chart-container">
+                <canvas id="berChart"></canvas>
+            </div>
+        </section>
+
+
+        <section id="conclusion" class="card p-6 md:p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-4">Real-World Impact & Mitigation</h2>
+            <p class="text-lg mb-6">
+                PMD isn't just a theoretical problem; it's a major barrier in high-capacity networks.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="stat-card p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold mb-2">Who is Affected?</h3>
+                    <ul class="list-disc list-inside space-y-2 text-lg">
+                        <li><strong class="font-semibold">Submarine Cables:</strong> Thousands of km long ($L$ is huge).</li>
+                        <li><strong class="font-semibold">40 Gb/s & 100 Gb/s Networks:</strong> Bit periods ($T_b$) are tiny (25ps or 10ps), so *any* DGD is a huge problem.</li>
+                        <li><strong class="font-semibold">Older Fiber Networks:</strong> Installed fiber (legacy) often has high $D_{PMD}$.</li>
+                    </ul>
+                </div>
+                <div class="stat-card p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold mb-2">How Do We Fix It?</h3>
+                     <ul class="list-disc list-inside space-y-2 text-lg">
+                        <li><strong class="font-semibold">Low-PMD Fibers:</strong> Modern fibers are manufactured with much lower $D_{PMD}$ coefficients.</li>
+                        <li><strong class="font-semibold">PMD Compensators (PMDCs):</strong> Active devices that adaptively correct for PMD.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-bold mb-4 text-center">Adaptive Compensation Process</h3>
+            <p class="text-lg mb-6 text-center">
+                PMD is dynamic—it changes with temperature and vibration. Compensators must actively track and correct it in real-time.
+            </p>
+            <div class="flex flex-col md:flex-row justify-center items-center gap-2">
+                <div class="flow-step">1. Monitor Signal<br>(Measure Eye Opening / BER)</div>
+                <div class="flow-arrow hidden md:block">→</div>
+                <div class="flow-arrow block md:hidden">↓</div>
+                <div class="flow-step">2. Detect Distortion<br>(Calculate PMD)</div>
+                <div class="flow-arrow hidden md:block">→</div>
+                <div class="flow-arrow block md:hidden">↓</div>
+                <div class="flow-step">3. Apply Correction<br>(Add opposite delay)</div>
+                <div class="flow-arrow hidden md:block">→</div>
+                <div class="flow-arrow block md:hidden">↓</div>
+                <div class="flow-step">4. Repeat<br>(Track changes)</div>
+            </div>
+        </section>
+
+
+        <footer class="text-center p-8 text-[#005E7C]">
+            <h2 class="text-3xl font-bold mb-4 text-[#0A2E36]">Project 2 Conclusions</h2>
+            <ul class="list-none space-y-3 text-xl">
+                <li>PMD is a fundamental limit in high-speed optics.</li>
+                <li>DGD grows with $\sqrt{L}$ and causes pulse broadening (ISI).</li>
+                <li>System Penalty grows quadratically with DGD, making it highly sensitive.</li>
+                <li>PMD-induced ISI closes the "Eye Diagram," which leads to catastrophic Bit Error Rates.</li>
+                <li>Mitigation requires low-PMD fiber or expensive, adaptive compensators.</li>
+            </ul>
+        </footer>
+
+    </main>
+
+    <script>
+
+        const chartColors = {
+            primary: '#0097B2',
+            secondary: '#8ECAE6',
+            accent: '#005E7C',
+            dark: '#0A2E36',
+            danger: '#E63946',
+            warn: '#F4A261',
+        };
+
+
+        function wrapLabels(label) {
+            if (typeof label === 'string' && label.length > 16) {
+                const words = label.split(' ');
+                const lines = [];
+                let currentLine = '';
+                words.forEach(word => {
+                    if ((currentLine + ' ' + word).trim().length > 16) {
+                        lines.push(currentLine.trim());
+                        currentLine = word;
+                    } else {
+                        currentLine = (currentLine + ' ' + word).trim();
+                    }
+                });
+                if (currentLine) {
+                    lines.push(currentLine.trim());
+                }
+                return lines;
+            }
+            return label;
+        }
+
+
+        const tooltipTitleCallback = (tooltipItems) => {
+            const item = tooltipItems[0];
+            let label = item.chart.data.labels[item.dataIndex];
+            if (Array.isArray(label)) {
+                return label.join(' ');
+            } else {
+                return label;
+            }
+        };
+
+
+        const commonOptions = (title) => ({
+            maintainAspectRatio: false,
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: title,
+                    font: { size: 18 },
+                    color: chartColors.dark,
+                    padding: { bottom: 20 }
+                },
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: chartColors.accent
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: tooltipTitleCallback
+                    },
+                    backgroundColor: 'rgba(10, 46, 54, 0.9)',
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 12 },
+                    padding: 10,
+                    cornerRadius: 4,
+                    boxPadding: 4
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'X-Axis',
+                        color: chartColors.accent
+                    },
+                    ticks: {
+                        color: chartColors.accent,
+                        callback: function(value, index, values) {
+                            const label = this.getLabelForValue(value);
+                            return wrapLabels(label);
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Y-Axis',
+                        color: chartColors.accent
+                    },
+                    ticks: {
+                        color: chartColors.accent
+                    },
+                    grid: {
+                        color: '#e0e0e0'
+                    }
+                }
+            }
+        });
+
+
+        if (document.getElementById('dgdChart')) {
+            const dgdCtx = document.getElementById('dgdChart').getContext('2d');
+            const dgdData = {
+                labels: [100, 200, 500, 1000],
+                datasets: [
+                    {
+                        label: 'DPMD = 0.1 ps/√km',
+                        data: [1.00, 1.41, 2.24, 3.16],
+                        borderColor: chartColors.primary,
+                        backgroundColor: chartColors.primary + '33',
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 5
+                    },
+                    {
+                        label: 'DPMD = 0.2 ps/√km',
+                        data: [2.00, 2.83, 4.47, 6.32],
+                        borderColor: chartColors.warn,
+                        backgroundColor: chartColors.warn + '33',
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 5
+                    },
+                    {
+                        label: 'DPMD = 0.5 ps/√km',
+                        data: [5.00, 7.07, 11.18, 15.81],
+                        borderColor: chartColors.danger,
+                        backgroundColor: chartColors.danger + '33',
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 5
+                    }
+                ]
+            };
+            const dgdOptions = commonOptions('DGD vs. Fiber Length (from Report Table 1)');
+            dgdOptions.scales.x.title.text = 'Fiber Length (L) in km';
+            dgdOptions.scales.y.title.text = 'DGD (Δτ_DGD) in ps';
+            new Chart(dgdCtx, {
+                type: 'line',
+                data: dgdData,
+                options: dgdOptions
+            });
+        }
+
+
+        function gaussian(x, mean, stdDev) {
+            const variance = Math.pow(stdDev, 2);
+            return Math.exp(-Math.pow(x - mean, 2) / (2 * variance));
+        }
+
+        const timeAxis = Array.from({ length: 121 }, (_, i) => i - 60);
+        const t0_sigma = 20 / 2.355;
+        const inputPulse = timeAxis.map(t => gaussian(t, 0, t0_sigma));
+
+        function getPulseData(dpmd) {
+            const dgd = {
+                0.1: { 100: 1.00, 200: 1.41, 500: 2.24, 1000: 3.16 },
+                0.2: { 100: 2.00, 200: 2.83, 500: 4.47, 1000: 6.32 },
+                0.5: { 100: 5.00, 200: 7.07, 500: 11.18, 1000: 15.81 }
+            };
+
+            const createOutputPulse = (L) => {
+                const currentDgd = dgd[dpmd][L];
+                const t_out_sigma = Math.sqrt(Math.pow(t0_sigma, 2) + Math.pow(currentDgd / 2.355, 2));
+                return timeAxis.map(t => gaussian(t, 0, t_out_sigma) * (t0_sigma / t_out_sigma));
+            };
+
+            return {
+                labels: timeAxis,
+                datasets: [
+                    {
+                        label: 'Input Pulse (T0=20ps)',
+                        data: inputPulse,
+                        borderColor: chartColors.dark,
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        fill: false
+                    },
+                    {
+                        label: 'L = 100 km',
+                        data: createOutputPulse(100),
+                        borderColor: chartColors.primary,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false
+                    },
+                    {
+                        label: 'L = 200 km',
+                        data: createOutputPulse(200),
+                        borderColor: chartColors.secondary,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false
+                    },
+                    {
+                        label: 'L = 500 km',
+                        data: createOutputPulse(500),
+                        borderColor: chartColors.warn,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false
+                    },
+                    {
+                        label: 'L = 1000 km',
+                        data: createOutputPulse(1000),
+                        borderColor: chartColors.danger,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false
+                    }
+                ]
+            };
+        }
+
+        const pulseOptions = (title) => {
+            const options = commonOptions(title);
+            options.scales.x.title.text = 'Time (ps)';
+            options.scales.y.title.text = 'Normalized Intensity';
+            options.scales.y.max = 1.1;
+            options.scales.y.min = -0.1;
+            options.plugins.legend.position = 'bottom';
+            options.plugins.legend.labels.boxWidth = 20;
+            options.plugins.legend.labels.font = { size: 10 };
+            return options;
+        };
+
+        if (document.getElementById('pulseChart1')) {
+            new Chart(document.getElementById('pulseChart1').getContext('2d'), {
+                type: 'line',
+                data: getPulseData(0.1),
+                options: pulseOptions('DPMD = 0.1 (Report Fig 1)')
+            });
+        }
+        if (document.getElementById('pulseChart2')) {
+            new Chart(document.getElementById('pulseChart2').getContext('2d'), {
+                type: 'line',
+                data: getPulseData(0.2),
+                options: pulseOptions('DPMD = 0.2 (Report Fig 2)')
+            });
+        }
+        if (document.getElementById('pulseChart3')) {
+            new Chart(document.getElementById('pulseChart3').getContext('2d'), {
+                type: 'line',
+                data: getPulseData(0.5),
+                options: pulseOptions('DPMD = 0.5 (Report Fig 3)')
+            });
+        }
+
+
+        if (document.getElementById('penaltyChart')) {
+            const penaltyCtx = document.getElementById('penaltyChart').getContext('2d');
+            const penaltyDataRaw = [
+                {dgd: 1.00, penalty: 0.0001}, {dgd: 1.41, penalty: 0.0002}, {dgd: 2.24, penalty: 0.0005}, {dgd: 3.16, penalty: 0.0010},
+                {dgd: 2.00, penalty: 0.0004}, {dgd: 2.83, penalty: 0.0008}, {dgd: 4.47, penalty: 0.0020}, {dgd: 6.32, penalty: 0.0040},
+                {dgd: 5.00, penalty: 0.0025}, {dgd: 7.07, penalty: 0.0050}, {dgd: 11.18, penalty: 0.0125}, {dgd: 15.81, penalty: 0.0250}
+            ].sort((a, b) => a.dgd - b.dgd);
+
+            const penaltyData = {
+                labels: penaltyDataRaw.map(p => p.dgd.toFixed(2)),
+                datasets: [{
+                    label: 'System Penalty',
+                    data: penaltyDataRaw.map(p => p.penalty),
+                    borderColor: chartColors.danger,
+                    backgroundColor: chartColors.danger + '80',
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 6
+                }]
+            };
+            const penaltyOptions = commonOptions('System Penalty vs. DGD (Report Fig 4)');
+            penaltyOptions.scales.x.title.text = 'DGD (Δτ_DGD) in ps';
+            penaltyOptions.scales.y.title.text = 'Penalty (Δτ_DGD / T_b)²';
+            new Chart(penaltyCtx, {
+                type: 'line',
+                data: penaltyData,
+                options: penaltyOptions
+            });
+        }
+
+
+        const eyeTime = Array.from({ length: 51 }, (_, i) => i * 2);
+        const openEyeData = {
+            labels: eyeTime,
+            datasets: [
+                {
+                    data: eyeTime.map(t => 0.9 + 0.1 * Math.sin(t / 10) + (t > 20 && t < 80 ? 0 : (t <= 20 ? (20-t)/-20 : (t-80)/-20) * 0.4)),
+                    borderColor: chartColors.primary, borderWidth: 2, pointRadius: 0, fill: false
+                },
+                {
+                    data: eyeTime.map(t => 0.85 + 0.1 * Math.cos(t / 10) + (t > 20 && t < 80 ? 0 : (t <= 20 ? (20-t)/-20 : (t-80)/-20) * 0.4)),
+                    borderColor: chartColors.primary, borderWidth: 2, pointRadius: 0, fill: false
+                },
+                {
+                    data: eyeTime.map(t => 0.1 - 0.1 * Math.sin(t / 10) - (t > 20 && t < 80 ? 0 : (t <= 20 ? (20-t)/20 : (t-80)/20) * 0.4)),
+                    borderColor: chartColors.secondary, borderWidth: 2, pointRadius: 0, fill: false
+                },
+                {
+                    data: eyeTime.map(t => 0.15 - 0.1 * Math.cos(t / 10) - (t > 20 && t < 80 ? 0 : (t <= 20 ? (20-t)/20 : (t-80)/20) * 0.4)),
+                    borderColor: chartColors.secondary, borderWidth: 2, pointRadius: 0, fill: false
+                }
+            ]
+        };
+        const closedEyeData = {
+            labels: eyeTime,
+            datasets: [
+                {
+                    data: eyeTime.map(t => 0.8 + 0.2 * Math.sin(t / 5 + 1) + (t > 10 && t < 90 ? (Math.random()-0.5)*0.4 : (t <= 10 ? (10-t)/-10 : (t-90)/-10) * 0.5)),
+                    borderColor: chartColors.primary, borderWidth: 1, pointRadius: 0, fill: false
+                },
+                {
+                    data: eyeTime.map(t => 0.75 + 0.2 * Math.cos(t / 7 + 2) + (t > 10 && t < 90 ? (Math.random()-0.5)*0.4 : (t <= 10 ? (10-t)/-10 : (t-90)/-10) * 0.5)),
+                    borderColor: chartColors.primary, borderWidth: 1, pointRadius: 0, fill: false
+                },
+                {
+                    data: eyeTime.map(t => 0.2 - 0.2 * Math.sin(t / 6 + 3) - (t > 10 && t < 90 ? (Math.random()-0.5)*0.4 : (t <= 10 ? (10-t)/10 : (t-90)/10) * 0.5)),
+                    borderColor: chartColors.secondary, borderWidth: 1, pointRadius: 0, fill: false
+                },
+                {
+                    data: eyeTime.map(t => 0.25 - 0.2 * Math.cos(t / 8 + 4) - (t > 10 && t < 90 ? (Math.random()-0.5)*0.4 : (t <= 10 ? (10-t)/10 : (t-90)/10) * 0.5)),
+                    borderColor: chartColors.secondary, borderWidth: 1, pointRadius: 0, fill: false
+                }
+            ]
+        };
+        const eyeOptions = (title) => {
+             const options = commonOptions(title);
+             options.plugins.legend.display = false;
+             options.plugins.title.color = '#FFFFFF';
+             options.scales = {
+                x: {
+                    title: { display: true, text: 'Time (ps)', color: '#FFFFFF' },
+                    ticks: { color: '#FFFFFF' },
+                    grid: { color: '#444' }
+                },
+                y: {
+                    title: { display: true, text: 'Amplitude', color: '#FFFFFF' },
+                    ticks: { color: '#FFFFFF' },
+                    grid: { color: '#444' },
+                    min: -0.2,
+                    max: 1.2
+                }
+             };
+             return options;
+        };
+
+        if (document.getElementById('eyeOpenChart')) {
+            new Chart(document.getElementById('eyeOpenChart').getContext('2d'), {
+                type: 'line',
+                data: openEyeData,
+                options: eyeOptions('Simulated Eye Diagram: DGD = 10 ps (Report Fig 5)')
+            });
+        }
+        if (document.getElementById('eyeClosedChart')) {
+            new Chart(document.getElementById('eyeClosedChart').getContext('2d'), {
+                type: 'line',
+                data: closedEyeData,
+                options: eyeOptions('Simulated Eye Diagram: DGD = 30 ps (Report Fig 6)')
+            });
+        }
+
+
+        if (document.getElementById('berChart')) {
+            const berCtx = document.getElementById('berChart').getContext('2d');
+            const berData = {
+                labels: [-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12],
+                datasets: [{
+                    label: 'Bit Error Rate (BER)',
+                    data: [1e-13, 1e-12, 1e-11, 4e-11, 2e-10, 1e-9, 8e-9, 6e-8, 5e-7, 3e-6, 2e-5, 1e-4],
+                    borderColor: chartColors.danger,
+                    backgroundColor: chartColors.danger + '33',
+                    fill: true,
+                    tension: 0.1
+                }]
+            };
+            const berOptions = commonOptions('BER vs. Eye Opening (Report Fig 7)');
+            berOptions.scales.x.title.text = 'Eye Opening (dB)';
+            berOptions.scales.y.type = 'logarithmic';
+            berOptions.scales.y.title.text = 'Bit Error Rate (BER)';
+            new Chart(berCtx, {
+                type: 'line',
+                data: berData,
+                options: berOptions
+            });
+        }
+
+    </script>
+</body>
+</html>
